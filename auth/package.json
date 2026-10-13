@@ -7,6 +7,6 @@
   "main": "src/index.js",
   "dependencies": {
     "qrcode": "^1.5.4",
-    "jose": "^5.9.6"
+    "jose": "^6.2.12"
   }
 }
