@@ -1,0 +1,21 @@
+{
+  "search.label": "Suchen",
+  "search.placeholder": "Auf dieser Website suchen",
+  "search.submit": "Suchen",
+  "search.title": "Suche",
+  "search.titleFor": "Suche: {q}",
+  "search.start": "Geben Sie ein oder zwei Wörter ein, um Seiten und Artikel dieser Website zu finden.",
+  "search.short": "Geben Sie mindestens {min} Zeichen ein, um zu suchen.",
+  "search.limited": "Zu viele Suchanfragen in kurzer Zeit. Bitte warten Sie einen Moment und versuchen Sie es erneut.",
+  "search.error": "Die Suche funktioniert gerade nicht. Bitte versuchen Sie es gleich noch einmal.",
+  "search.none": "Keine Ergebnisse für „{q}“.",
+  "search.none.hint": "Prüfen Sie die Schreibweise oder versuchen Sie es mit weniger oder anderen Wörtern.",
+  "search.count.one": "1 Ergebnis für „{q}“",
+  "search.count.other": "{count} Ergebnisse für „{q}“",
+  "search.pages": "Ergebnisseiten",
+  "search.prev": "Zurück",
+  "search.next": "Weiter",
+  "search.page": "Seite {page} von {total}",
+  "search.type.page": "Seite",
+  "search.type.post": "Artikel"
+}

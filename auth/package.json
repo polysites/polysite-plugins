@@ -1,0 +1,12 @@
+{
+  "name": "@polysite-plugins/auth",
+  "version": "0.1.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "type": "module",
+  "main": "src/index.js",
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "jose": "^5.9.6"
+  }
+}

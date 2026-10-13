@@ -1,0 +1,75 @@
+name: Bug report
+description: Something does not work as the documentation says.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. **Do not report security problems here**: use the private route in the core repository's SECURITY.md.
+        Remove passwords, tokens, email addresses and other personal data from anything you paste.
+  - type: dropdown
+    id: area
+    attributes:
+      label: What is affected?
+      options:
+        - A plugin
+        - A theme
+        - Documentation
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: A release tag, the image tag, or the commit you built from (see `git rev-parse --short HEAD`).
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How do you run it?
+      options:
+        - Docker Compose, local dev loop
+        - Docker Compose, production-parity (docker-compose.yml)
+        - Docker Compose, production images (docker-compose.prod.yml)
+        - Kubernetes or another orchestrator
+        - Something else
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Ideally on a fresh install with the demo data (`seedDevData.ts`).
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots
+      description: For example `docker compose logs --tail 50 cms`. Check them for secrets and personal data first.
+      render: shell
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system (if it is about the admin or a page)
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before sending
+      options:
+        - label: I searched the existing issues.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true
+        - label: I removed secrets and personal data from what I pasted.
+          required: true

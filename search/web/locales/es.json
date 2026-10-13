@@ -1,0 +1,21 @@
+{
+  "search.label": "Buscar",
+  "search.placeholder": "Buscar en este sitio",
+  "search.submit": "Buscar",
+  "search.title": "Búsqueda",
+  "search.titleFor": "Búsqueda: {q}",
+  "search.start": "Escriba una o dos palabras para encontrar páginas y artículos de este sitio.",
+  "search.short": "Escriba al menos {min} caracteres para buscar.",
+  "search.limited": "Demasiadas búsquedas en poco tiempo. Espere un momento e inténtelo de nuevo.",
+  "search.error": "La búsqueda no funciona en este momento. Inténtelo de nuevo en un momento.",
+  "search.none": "No hay resultados para «{q}».",
+  "search.none.hint": "Revise la ortografía o pruebe con menos palabras u otras distintas.",
+  "search.count.one": "1 resultado para «{q}»",
+  "search.count.other": "{count} resultados para «{q}»",
+  "search.pages": "Páginas de resultados",
+  "search.prev": "Anterior",
+  "search.next": "Siguiente",
+  "search.page": "Página {page} de {total}",
+  "search.type.page": "Página",
+  "search.type.post": "Artículo"
+}

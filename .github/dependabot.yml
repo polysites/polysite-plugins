@@ -1,0 +1,11 @@
+# Weekly update proposals for each plugin's own dependencies, as pull requests that the plugins' CI checks.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories: [/analytics, /auth, /email, /i18n, /notifications, /posts, /search, /share, /webhooks, /wordpress-import]
+    schedule: { interval: weekly, day: monday }
+    groups:
+      all: { patterns: ["*"], update-types: [minor, patch] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }

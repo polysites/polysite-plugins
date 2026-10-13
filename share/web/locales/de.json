@@ -1,0 +1,13 @@
+{
+  "share.label": "Diese Seite teilen",
+  "share.heading": "Teilen",
+  "share.on": "Auf {network} teilen",
+  "share.email": "Per E-Mail teilen",
+  "share.emailName": "E-Mail",
+  "share.copy": "Link kopieren",
+  "share.copied": "Link kopiert",
+  "share.copyFailed": "Der Link konnte nicht kopiert werden",
+  "share.native": "Teilen…",
+  "share.nativeName": "Teilen",
+  "share.failed": "Die Seite konnte nicht geteilt werden"
+}

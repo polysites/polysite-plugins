@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 100">
+  <g transform="translate(8,10) scale(0.8)">
+    <polygon points="16,12 34,12 34,88 16,88" fill="#16213E"/>
+    <polygon points="62,8 88,34 62,60 36,34" fill="#3E5BA6"/>
+    <polygon points="62,64 76,78 62,92 48,78" fill="#3E5BA6"/>
+  </g>
+  <text x="110" y="58" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="44" font-weight="600" fill="#16213E">Polysite</text>
+  <text x="112" y="80" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="4" fill="#8A94A6">CMS</text>
+</svg>

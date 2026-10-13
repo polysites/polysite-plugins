@@ -1,0 +1,8 @@
+# Read when this repository is passed to a Polysite image build as a named build context
+# (docker-compose.workspace.yml in the core). The images install each plugin's dependencies themselves.
+**/node_modules
+**/.nuxt
+**/.output
+**/.next
+.git
+.github

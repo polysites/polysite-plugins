@@ -1,0 +1,13 @@
+{
+  "share.label": "Compartir esta página",
+  "share.heading": "Compartir",
+  "share.on": "Compartir en {network}",
+  "share.email": "Compartir por correo electrónico",
+  "share.emailName": "Correo",
+  "share.copy": "Copiar enlace",
+  "share.copied": "Enlace copiado",
+  "share.copyFailed": "No se pudo copiar el enlace",
+  "share.native": "Compartir…",
+  "share.nativeName": "Compartir",
+  "share.failed": "No se pudo compartir la página"
+}

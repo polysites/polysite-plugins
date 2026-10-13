@@ -1,0 +1,7 @@
+{
+  "slug": "i18n",
+  "label": "Languages",
+  "scope": "global",
+  "kind": "site-settings",
+  "version": "0.1.0"
+}

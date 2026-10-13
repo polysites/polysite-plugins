@@ -1,0 +1,6 @@
+{
+  "slug": "webhooks",
+  "label": "Webhooks",
+  "scope": "global",
+  "version": "0.1.0"
+}

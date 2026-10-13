@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest an improvement or a new capability.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Polysite keeps the core generic: a capability for one kind of site usually belongs in a plugin or a theme. Describe the need first; the solution can follow.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do, and what gets in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to see?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What have you tried or considered instead?
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where do you think it belongs?
+      options:
+        - The core
+        - A plugin
+        - A theme
+        - Not sure
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contributing
+      options:
+        - label: I would be willing to work on this (see CONTRIBUTING.md in the core repository).
+        - label: I searched the existing issues.
+          required: true

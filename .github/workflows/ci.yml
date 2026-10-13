@@ -1,0 +1,31 @@
+name: CI
+
+# Each plugin's own tests, on their own: a plugin is independent of the Polysite core and needs nothing
+# from it to be tested. (The core's checks live in the polysite repository.)
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+# Least privilege: the job only reads the repository.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - name: Test every plugin
+        run: |
+          status=0
+          for dir in */; do
+            [ -f "${dir}polysite.plugin.json" ] || continue
+            [ -d "${dir}test" ] || { echo "-- ${dir%/}: no tests"; continue; }
+            echo "== ${dir%/}"
+            (cd "$dir" && { [ -f package-lock.json ] && npm ci --silent --workspaces=false || true; } && node --test test/*.test.js) || status=1
+          done
+          exit $status

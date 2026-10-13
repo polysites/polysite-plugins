@@ -1,0 +1,7 @@
+{
+  "slug": "wordpress-import",
+  "label": "WordPress import",
+  "scope": "global",
+  "version": "0.1.0",
+  "kind": "content-type"
+}

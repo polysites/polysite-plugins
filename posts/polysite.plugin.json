@@ -1,0 +1,7 @@
+{
+  "slug": "posts",
+  "label": "News and articles",
+  "scope": "per-site",
+  "version": "0.1.0",
+  "kind": ["content-type", "site-settings"]
+}

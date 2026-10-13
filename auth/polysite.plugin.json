@@ -1,0 +1,6 @@
+{
+  "slug": "auth",
+  "label": "Sign-in security",
+  "scope": "global",
+  "version": "0.1.0"
+}

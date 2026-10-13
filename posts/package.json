@@ -1,0 +1,8 @@
+{
+  "name": "@polysite-plugins/posts",
+  "version": "0.1.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "type": "module",
+  "main": "src/index.js"
+}
