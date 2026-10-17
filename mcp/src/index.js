@@ -4,14 +4,22 @@ import { buildTools } from "./tools.js";
 
 // Lets AI agents (Claude and other MCP clients) work on a Polysite install over MCP at POST /api/mcp.
 //
-//  - It wraps Payload's official MCP plugin (its API-key collection, server and generic read tools) and adds Polysite-aware tools that
-//    build pages from blocks and forms from a plain description. Writes are drafts only; nothing here publishes or deletes.
-//  - A key acts as the person it belongs to, so every access rule (roles, assigned sites, publish permission) still applies. Super
-//    Admins create keys, for a dedicated account with the "AI Editor" role this plugin seeds (create, read and update; no publish, no delete).
-//  - Own table only (payload-mcp-api-keys). Removing the plugin deletes nothing.
-const isSuper = ({ req }) => req?.user?.isSuperAdmin === true;
+//  - It wraps Payload's official MCP plugin (its API-key collection, server and generic tools) and adds Polysite-aware tools that build
+//    pages from blocks, create forms from a plain description, upload images and publish.
+//  - MCP is only the connection. A key acts as the person it belongs to, so what an agent may do (create, edit, publish, delete) is exactly
+//    what that person's role allows: every access rule, assigned site and publish permission still applies. The plugin adds no limit of its
+//    own beyond what each key switches on.
+//  - Anyone signed in can make keys for their own account; a Super Admin can make one for another account. The "AI Editor" role this plugin
+//    seeds (no publish, no delete) is an optional account to give an agent less than a person has.
+//  - Own table only (payload_mcp_api_keys). Removing the plugin deletes nothing.
+const isSuper = (user) => user?.isSuperAdmin === true;
+const signedIn = ({ req }) => Boolean(req?.user);
+const ownOrSuper = ({ req }) => (isSuper(req?.user) ? true : req?.user ? { user: { equals: req.user.id } } : false);
+const superOnly = ({ req }) => isSuper(req?.user);
+
 const ROLE = "AI Editor";
 const ROLE_MODULES = ["pages", "media", "forms", "redirects"];
+const ALL = { find: true, create: true, update: true, delete: true };
 
 async function seedRole(payload) {
   const found = await payload.find({ collection: "roles", where: { name: { equals: ROLE } }, limit: 1, overrideAccess: true });
@@ -29,30 +37,36 @@ async function seedRole(payload) {
   });
 }
 
+const PANEL = "../../../plugins/mcp/src/admin/McpPanel#McpPanel";
+
 export default function mcpAgentPlugin(incomingConfig) {
   const configured = mcpPlugin({
     collections: {
-      pages: { enabled: { find: true }, description: "Website pages. Build and change them with polysite_create_page / polysite_update_page." },
-      forms: { enabled: { find: true }, description: "Forms. Create them with polysite_create_form." },
-      media: { enabled: { find: true }, description: "Uploaded images. Add one with polysite_upload_media." },
-      sites: { enabled: { find: true }, description: "The sites on this install; use the id as siteId." },
-      redirects: { enabled: { find: true, create: true }, description: "Redirects from old addresses." },
+      pages: { enabled: ALL, description: "Website pages. Build and change them with polysite_create_page / polysite_update_page; publish with polysite_publish_page." },
+      forms: { enabled: ALL, description: "Forms. Create them with polysite_create_form." },
+      media: { enabled: ALL, description: "Uploaded images. Add one with polysite_upload_media." },
+      sites: { enabled: ALL, description: "The sites on this install; use the id as siteId." },
+      redirects: { enabled: ALL, description: "Redirects from old addresses." },
     },
     mcp: {
       tools: buildTools(),
     },
     overrideApiKeyCollection: (collection) => ({
       ...collection,
-      access: { create: isSuper, read: isSuper, update: isSuper, delete: isSuper, unlock: isSuper },
-      admin: { ...collection.admin, group: "Administration", hidden: ({ user }) => user?.isSuperAdmin !== true },
+      access: { create: signedIn, read: ownOrSuper, update: ownOrSuper, delete: ownOrSuper, unlock: ownOrSuper },
+      admin: { ...collection.admin, group: "Administration" },
       fields: (collection.fields ?? []).map((field) =>
-        field.name === "user" ? { ...field, access: { ...field.access, create: isSuper, update: isSuper } } : field,
+        field.name === "user" ? { ...field, access: { ...field.access, create: superOnly, update: superOnly } } : field,
       ),
     }),
   })(incomingConfig);
 
   return {
     ...configured,
+    admin: {
+      ...configured.admin,
+      components: { ...configured.admin?.components, beforeDashboard: [...(configured.admin?.components?.beforeDashboard ?? []), PANEL] },
+    },
     onInit: async (payload) => {
       await configured.onInit?.(payload);
       try {

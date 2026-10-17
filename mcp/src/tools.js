@@ -9,8 +9,15 @@ const failure = (error) => ({ content: [{ type: "text", text: `Error: ${error in
 
 const adminUrl = (collection, id) => `${process.env.CMS_SCHEME ?? "http"}://${process.env.CMS_DOMAIN ?? "localhost:3001"}/admin/collections/${collection}/${id}`;
 
-// Everything here writes DRAFTS only. The key acts as the person it belongs to, so whether that person may publish is decided by their role
-// (publishRules in the core), not by this plugin; give agents a role without "publish" and "delete".
+// The key acts as the person it belongs to, so what an agent may do (publish, unpublish, delete) is decided by that person's role and
+// the core's own rules, never by this plugin. Pages are saved as drafts unless the agent asks to publish.
+//
+// The core's publish rules read `req.query.draft` to tell a draft save (needs no publish permission) from a publishing save.
+function withDraft(req, draft) {
+  req.query = { ...req.query, draft: draft ? "true" : undefined };
+  return req;
+}
+
 const blockSchema = z
   .object({ blockType: z.string().describe("The block's type, from polysite_describe_blocks") })
   .passthrough()
@@ -34,25 +41,27 @@ export function buildTools() {
     {
       name: "polysite_create_page",
       description:
-        "Creates a DRAFT page on a site from a list of blocks. It is not published; a person reviews and publishes it in the admin. Use polysite_describe_blocks for the valid blocks and fields, and find sites to get siteId. Text fields marked rich text take Markdown. Returns the admin link.",
+        "Creates a page on a site from a list of blocks. Saved as a draft unless 'publish' is true (publishing needs the key's user to have publish permission). Use polysite_describe_blocks for the valid blocks and fields, and find sites to get siteId. Text fields marked rich text take Markdown. Returns the admin link.",
       parameters: {
         siteId: z.union([z.number(), z.string()]).describe("The site's id"),
         title: z.string().min(1),
         slug: z.string().min(1).describe("Address of the page on the site, e.g. 'about' (use 'home' or '/' for the home page)"),
         blocks: z.array(blockSchema).min(1),
+        publish: z.boolean().optional().describe("Publish straight away instead of saving a draft"),
       },
-      handler: async ({ siteId, title, slug, blocks }, req) => {
+      handler: async ({ siteId, title, slug, blocks, publish }, req) => {
         try {
           const content = prepareBlocks(req.payload.collections.pages.config, blocks);
+          const status = publish ? "published" : "draft";
           const doc = await req.payload.create({
             collection: "pages",
-            data: { site: siteId, title, slug, content, _status: "draft" },
-            draft: true,
+            data: { site: siteId, title, slug, content, _status: status },
+            draft: !publish,
             overrideAccess: false,
             user: req.user,
-            req,
+            req: withDraft(req, !publish),
           });
-          return reply({ id: doc.id, status: "draft", slug: doc.slug, adminUrl: adminUrl("pages", doc.id), note: "A draft. Review it in the admin, then publish." });
+          return reply({ id: doc.id, status, slug: doc.slug, adminUrl: adminUrl("pages", doc.id) });
         } catch (error) {
           return failure(error);
         }
@@ -61,25 +70,52 @@ export function buildTools() {
     {
       name: "polysite_update_page",
       description:
-        "Replaces the blocks (and optionally the title) of an existing page as a new DRAFT. If the page is published, the live version is untouched until a person publishes the draft. Send ALL the blocks the page should have, not only the changed ones.",
+        "Replaces the blocks (and optionally the title) of an existing page. Saved as a new draft unless 'publish' is true; a draft of a published page leaves the live version untouched until it is published. Send ALL the blocks the page should have, not only the changed ones.",
       parameters: {
         pageId: z.union([z.number(), z.string()]),
         title: z.string().min(1).optional(),
         blocks: z.array(blockSchema).min(1),
+        publish: z.boolean().optional().describe("Publish the result instead of saving a draft (needs publish permission)"),
       },
-      handler: async ({ pageId, title, blocks }, req) => {
+      handler: async ({ pageId, title, blocks, publish }, req) => {
         try {
           const content = prepareBlocks(req.payload.collections.pages.config, blocks);
           const doc = await req.payload.update({
             collection: "pages",
             id: pageId,
-            data: { ...(title ? { title } : {}), content },
-            draft: true,
+            data: { ...(title ? { title } : {}), content, ...(publish ? { _status: "published" } : {}) },
+            draft: !publish,
             overrideAccess: false,
             user: req.user,
-            req,
+            req: withDraft(req, !publish),
           });
-          return reply({ id: doc.id, status: "draft", adminUrl: adminUrl("pages", doc.id) });
+          return reply({ id: doc.id, status: publish ? "published" : "draft", adminUrl: adminUrl("pages", doc.id) });
+        } catch (error) {
+          return failure(error);
+        }
+      },
+    },
+    {
+      name: "polysite_publish_page",
+      description:
+        "Publishes a page (its latest draft goes live) or, with publish=false, takes a published page offline. Allowed only if the key's user has publish / unpublish permission for pages.",
+      parameters: {
+        pageId: z.union([z.number(), z.string()]),
+        publish: z.boolean().default(true),
+      },
+      handler: async ({ pageId, publish }, req) => {
+        try {
+          const status = publish === false ? "draft" : "published";
+          const doc = await req.payload.update({
+            collection: "pages",
+            id: pageId,
+            data: { _status: status },
+            draft: false,
+            overrideAccess: false,
+            user: req.user,
+            req: withDraft(req, false),
+          });
+          return reply({ id: doc.id, status, adminUrl: adminUrl("pages", doc.id) });
         } catch (error) {
           return failure(error);
         }
