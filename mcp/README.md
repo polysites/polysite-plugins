@@ -44,8 +44,14 @@ Other clients: use `npx mcp-remote https://<your CMS address>/api/mcp --header "
 
 - Uploading files other than images. A 1-pixel image fails in the core's image resizer; real images work.
 - Publishing, scheduling and translations by an agent.
-- A production migration for the key collection (`payload-mcp-api-keys`); local development creates the table by itself. Generate one with `scripts/pluginMigrations.sh plugin mcp <name>` (needs a terminal) before using this in production.
+- A running install test of the migration on an empty production database (the plugin's `check` passes; booting the production image was not done).
 - An audit log of agent calls.
+
+## Database
+
+The migration (`migrations/`) creates one table, `payload_mcp_api_keys`, plus the two relation columns Payload keeps for it. Each collection and tool a key can switch on is a column, so **adding or removing a tool or an enabled collection needs a new migration** (`docker compose exec cms sh scripts/pluginMigrations.sh plugin mcp <name>`).
+
+Checked on the dev stack: the AI Editor account is refused when it tries to publish or delete through the API, and can still edit drafts.
 
 ## For developers
 
