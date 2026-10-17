@@ -1,0 +1,13 @@
+{
+  "name": "@polysite-plugins/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "type": "module",
+  "main": "src/index.js",
+  "dependencies": {
+    "@payloadcms/plugin-mcp": "3.90.2",
+    "typescript": "^6.0.3",
+    "zod": "^3.25.50"
+  }
+}
