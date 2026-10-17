@@ -11063,8 +11063,50 @@
           "notNull": false,
           "default": false
         },
+        "pages_create": {
+          "name": "pages_create",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "pages_update": {
+          "name": "pages_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "pages_delete": {
+          "name": "pages_delete",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
         "forms_find": {
           "name": "forms_find",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "forms_create": {
+          "name": "forms_create",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "forms_update": {
+          "name": "forms_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "forms_delete": {
+          "name": "forms_delete",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
@@ -11077,8 +11119,50 @@
           "notNull": false,
           "default": false
         },
+        "media_create": {
+          "name": "media_create",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "media_update": {
+          "name": "media_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "media_delete": {
+          "name": "media_delete",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
         "sites_find": {
           "name": "sites_find",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "sites_create": {
+          "name": "sites_create",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "sites_update": {
+          "name": "sites_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "sites_delete": {
+          "name": "sites_delete",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
@@ -11093,6 +11177,20 @@
         },
         "redirects_create": {
           "name": "redirects_create",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "redirects_update": {
+          "name": "redirects_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "redirects_delete": {
+          "name": "redirects_delete",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
@@ -11114,6 +11212,13 @@
         },
         "payload_mcp_tool_polysite_update_page": {
           "name": "payload_mcp_tool_polysite_update_page",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "payload_mcp_tool_polysite_publish_page": {
+          "name": "payload_mcp_tool_polysite_publish_page",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
@@ -12779,6 +12884,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "3fdd25b2-35e1-48f1-a4aa-7112a96b0e67",
+  "id": "c322cdad-9e9b-4abe-8513-fe52824b7ad7",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }
