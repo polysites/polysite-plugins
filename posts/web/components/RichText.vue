@@ -40,15 +40,15 @@ const Draw = (p: { nodes: RNode[] }) => p.nodes.map(draw);
 }
 .poly-richtext :deep(ul) {
   list-style: disc;
-  padding-left: 1.4em;
+  padding-inline-start: 1.4em;
 }
 .poly-richtext :deep(ol) {
   list-style: decimal;
-  padding-left: 1.4em;
+  padding-inline-start: 1.4em;
 }
 .poly-richtext :deep(blockquote) {
-  border-left: 4px solid var(--brand-primary, currentColor);
-  padding-left: 1em;
+  border-inline-start: 4px solid var(--brand-primary, currentColor);
+  padding-inline-start: 1em;
   font-style: italic;
 }
 .poly-richtext :deep(a) {

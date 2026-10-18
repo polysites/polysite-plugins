@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import i18nPlugin, { PUBLIC_FIELDS, SLUG } from "../src/index.js";
-import { checkDefaultLanguage, checkLanguages, normaliseSiteLanguages, offeredBy, selectedSiteId, unionOffered } from "../src/languages.js";
+import { checkDefaultLanguage, checkLanguages, checkPreviewLanguages, normaliseSiteLanguages, offeredBy, selectedSiteId, unionOffered } from "../src/languages.js";
 
 test("a site with no row or no languages set offers English only", () => {
   for (const row of [null, undefined, {}, { languages: [] }, { languages: "fr" }]) assert.deepEqual(offeredBy(row), ["en"]);
@@ -81,11 +81,12 @@ test("the plugin adds its own site-languages collection, a languages cell to the
   assert.equal(JSON.stringify(out.collections.find((c) => c.slug === "sites")), sitesBefore, "Sites is not touched");
 
   const own = out.collections.find((c) => c.slug === SLUG);
-  assert.deepEqual(own.fields.map((f) => f.name), ["languages", "defaultLanguage"]);
-  assert.deepEqual(own.fields.map((f) => f.type), ["text", "text"], "plain text, never a select (a select is a database enum)");
+  assert.deepEqual(own.fields.map((f) => f.name), ["languages", "defaultLanguage", "previewLanguages", "translationEnabled"]);
+  assert.deepEqual(own.fields.map((f) => f.type), ["text", "text", "text", "checkbox"], "plain text, never a select (a select is a database enum)");
   assert.equal(own.fields[0].hasMany, true);
   assert.deepEqual(own.custom.polysite.siteSettings, { key: "languages", publicFields: PUBLIC_FIELDS });
-  assert.deepEqual(PUBLIC_FIELDS, ["languages", "defaultLanguage"]);
+  assert.deepEqual(PUBLIC_FIELDS, ["languages", "defaultLanguage", "previewLanguages"]);
+  assert.ok(!PUBLIC_FIELDS.includes("translationEnabled"), "the machine-translation switch never reaches visitors");
   assert.equal(own.hooks.beforeValidate.length, 1);
   assert.equal(own.admin.custom.navSubgroup, "Site features", "nested in the admin menu (admin.custom is what reaches the browser)");
   assert.equal(own.fields[0].admin.components.Field.clientProps.options.length, 2);
@@ -97,7 +98,12 @@ test("the plugin adds its own site-languages collection, a languages cell to the
   assert.equal(pages.admin.defaultColumns, undefined, "a collection with no default columns is left to Payload");
   assert.equal(typeof out.localization.filterAvailableLocales, "function");
   assert.equal(out.custom?.polysite?.languagesFor, undefined, "the core reads site.extensions.languages, not a function left in the config");
-  assert.equal(out.endpoints[0].path, "/i18n/status");
+  assert.deepEqual(out.endpoints.map((e) => e.path).sort(), ["/i18n/status", "/i18n/translate", "/i18n/translate/review", "/i18n/translate/status"]);
+  const mt = out.collections.find((c) => c.slug === "machine-translations");
+  assert.equal(mt.admin.hidden, true);
+  assert.equal(mt.access.create(), false, "only the server writes these rows");
+  assert.equal(pages.hooks.beforeChange.length, 1, "pages cannot be published with machine text nobody reviewed");
+  assert.equal(pages.admin.components.edit.beforeDocumentControls.length, 1);
   assert.equal(out.admin.components.header.length, 1);
 });
 
@@ -178,4 +184,27 @@ test("the status endpoint says whether the person can write in more than one lan
   assert.deepEqual(await call({ 1: { languages: ["en", "fr"] } }, "payload-tenant=1"), { multilingual: true, languages: ["en", "fr"] });
   assert.deepEqual(await call({}, "payload-tenant=1"), { multilingual: false, languages: ["en"] });
   assert.equal((await handler({ payload: fakePayload({}), user: null, headers: new Headers() })).status, 401);
+});
+
+test("preview-only languages are a subset of the offered ones and never the default", () => {
+  const original = { languages: ["en", "fr", "ar"], defaultLanguage: "en", previewLanguages: ["ar"] };
+  assert.deepEqual(normaliseSiteLanguages({ previewLanguages: ["ar", "fr", "ar", "en", "de"] }, original).previewLanguages, ["ar", "fr"]);
+  // dropping a language from the offer drops it from the preview list; changing the default takes the new default out of it
+  assert.deepEqual(normaliseSiteLanguages({ languages: ["en", "fr"] }, original).previewLanguages, []);
+  assert.deepEqual(normaliseSiteLanguages({ defaultLanguage: "ar" }, original).previewLanguages, []);
+  // a row that never used it keeps its shape
+  assert.deepEqual(normaliseSiteLanguages({ languages: ["en", "fr"], defaultLanguage: "en" }, { languages: ["en"] }), { languages: ["en", "fr"], defaultLanguage: "en" });
+});
+
+test("a preview-only list is checked against the catalog, the offer and the default", () => {
+  const check = checkPreviewLanguages(known);
+  const sibling = { languages: ["en", "fr", "pt-BR"], defaultLanguage: "en" };
+  assert.equal(check(["fr"], { siblingData: sibling }), true);
+  assert.equal(check([], { siblingData: { languages: [] } }), true);
+  assert.equal(check(null, { siblingData: sibling }), true);
+  assert.match(check(["xx"], { siblingData: sibling }), /Not a language/);
+  assert.match(check(["fr"], { siblingData: { languages: [] } }), /offers first/);
+  assert.match(check(["fr"], { siblingData: { languages: ["en", "pt-BR"], defaultLanguage: "en" } }), /Not offered/);
+  assert.match(check(["en"], { siblingData: sibling }), /default language cannot be preview only/);
+  assert.match(check("fr", { siblingData: sibling }), /list of language codes/);
 });

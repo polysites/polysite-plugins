@@ -4060,6 +4060,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "translated_slug": {
+          "name": "translated_slug",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "meta_title": {
           "name": "meta_title",
           "type": "varchar",
@@ -6908,6 +6914,12 @@
       "columns": {
         "version_title": {
           "name": "version_title",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "version_translated_slug": {
+          "name": "version_translated_slug",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -11211,6 +11223,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "localized_path": {
+          "name": "localized_path",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "search_text": {
           "name": "search_text",
           "type": "varchar",
@@ -12998,6 +13016,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "05a1f72f-28a9-4c06-b7b9-0409a27b1f72",
+  "id": "e2d9aad8-d555-4e4e-a432-264d3f53d897",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

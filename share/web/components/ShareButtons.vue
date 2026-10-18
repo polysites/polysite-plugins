@@ -238,7 +238,7 @@ async function nativeShare() {
   border-color: transparent;
 }
 .poly-share--side {
-  left: 0.75rem;
+  inset-inline-start: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
 }

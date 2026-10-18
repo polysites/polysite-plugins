@@ -53,7 +53,7 @@ const both = computed(() => groups.value.length > 1);
   flex: 1 1 14rem;
 }
 .poly-tracking-link {
-  margin-left: 0.25rem;
+  margin-inline-start: 0.25rem;
   text-decoration: underline;
 }
 .poly-tracking-actions {

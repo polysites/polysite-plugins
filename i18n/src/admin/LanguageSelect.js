@@ -4,14 +4,19 @@ import { createElement as h } from "react";
 
 // The language menu for the `site-languages` row. The values are plain text (never a database enum, since the catalog is the core's
 // and grows with its releases), so the menu is this component rather than a Payload `select`. `single` is the default-language
-// menu, which offers only the languages ticked above it. A code the catalog no longer has stays visible by its raw name, so it can
+// menu, which offers only the languages ticked above it; `subset` is the preview-only menu. A code the catalog no longer has stays visible by its raw name, so it can
 // be unticked. Plain React.createElement (no JSX), like every plugin admin component.
-export function LanguageSelect({ field, path, options, single }) {
+export function LanguageSelect({ field, path, options, single, subset }) {
   const { errorMessage, setValue, showError, value } = useField({ path });
   const offered = useFormFields(([fields]) => fields.languages?.value);
+  const defaultCode = useFormFields(([fields]) => fields.defaultLanguage?.value);
 
   const chosen = single ? (typeof value === "string" && value ? [value] : []) : Array.isArray(value) ? value : [];
-  const pool = single && Array.isArray(offered) && offered.length > 0 ? options.filter((o) => offered.includes(o.value)) : options;
+  // `subset` is the preview-only menu: some of the offered languages, never the default one.
+  const pool =
+    (single || subset) && Array.isArray(offered) && offered.length > 0
+      ? options.filter((o) => offered.includes(o.value) && !(subset && o.value === (defaultCode || offered[0])))
+      : options;
   const known = new Set(pool.map((o) => o.value));
   const all = [...pool, ...chosen.filter((v) => !known.has(v)).map((v) => ({ label: v, value: v }))];
 

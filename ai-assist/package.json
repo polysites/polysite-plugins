@@ -1,0 +1,11 @@
+{
+  "name": "@polysite-plugins/ai-assist",
+  "version": "0.1.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "type": "module",
+  "main": "src/index.js",
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.135.0"
+  }
+}

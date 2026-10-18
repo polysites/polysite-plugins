@@ -5,10 +5,15 @@ import { switcherLanguages } from "../utils/alternates";
 
 const language = useSiteLanguage();
 const t = useT();
-const { data: translated } = await usePageTranslations();
+const { data: entry } = await usePageTranslations();
+const translated = computed(() => entry.value?.languages ?? null);
 
 const choices = computed(() => switcherLanguages(language.setup.value, language.code.value, translated.value));
-const addressOf = (code: string) => withLanguage(language.path.value ? `/${language.path.value}` : "/", code, language.setup.value);
+// The page's address in each language: its own when it has one (/fr/a-propos), else this address under the language's prefix.
+const addressOf = (code: string) =>
+  entry.value
+    ? addressInLanguage(entry.value.path, entry.value.localized, code, language.setup.value)
+    : withLanguage(language.path.value ? `/${language.path.value}` : "/", code, language.setup.value);
 </script>
 
 <template>

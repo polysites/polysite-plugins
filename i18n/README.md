@@ -25,7 +25,7 @@ A site's default language needn't be English. A French-only site simply lists Fr
 
 Open a page or post and pick the language at the top of the screen. Fields you haven't translated show the default language's text, and saving a translation needs only what you are translating: a field that is *required* is required in the site's default language only. **Publishing publishes every language together** (publishing one language on its own is a later step).
 
-Not translated: the page's address (`/fr/about` is the same slug as `/about`), its pictures, links and the order of its blocks. Those are shared by every language.
+Not translated: its pictures, links and the order of its blocks (shared by every language). A page's address can be translated: see "A page's address in each language".
 
 ## What a visitor sees when something isn't translated
 
@@ -40,9 +40,45 @@ Not translated: the page's address (`/fr/about` is the same slug as `/about`), i
 - Use `useT()` for fixed words: `t("form.thanks", "Thank you.")`. The English is written in the call; a language is added by registering a dictionary from a Nuxt plugin that depends on `strings`: `nuxtApp.$strings.register("fr", { "form.thanks": "Merci." })`. This plugin ships French, Spanish and German for the core's words (forms, captcha, the error page) and the news section's.
 - The switcher draws plain unstyled links with the class `poly-language-switcher`; style it from your theme.
 
+## A language that is not live yet (preview only)
+
+On the same **Site languages** page, **Preview only (not live yet)** lists languages that editors can write in and preview but visitors cannot reach: no address (`/fr/about` is a 404), no entry in the switcher, `hreflang` or the sitemap. Take a language out of the list to put it live. The default language is always live. This is how a half-translated language stays private until it is ready (publishing one language on its own is still not built: Payload's per-language publish status is experimental).
+
+To look at a preview-only language, open the page's **Live Preview** in the admin while that language is selected: the address it opens carries a signed link (`?_pl=...`, good for 12 hours, for that one language on that one site). The page is sent `noindex` and is never stored by the page cache. Links inside the previewed page do not carry the signature, so move around by choosing the language in the admin, not by clicking.
+
+## A page's address in each language
+
+Pages have an **Address in this language** field (below the shared **Address**). With French selected, `a-propos` makes the page `/fr/a-propos`; empty keeps `/fr/about`. Any script works (`/ar/من-نحن`). The shared address stays the page's identity and the default language's address. The old address keeps working: `/fr/about` sends visitors on to `/fr/a-propos` (a 301), and changing a translated address leaves a redirect from the old one (the URL manager shows it as `fr/<old address>`). The switcher, `hreflang` and the sitemap use each language's own address. An address must be unique among the site's pages in that language and cannot be a language code or one the site itself uses. Not covered yet: news posts (a post keeps its shared address under the language prefix, and the news section's own address, `/fr/news`, is the same in every language), and links typed inside content or menus (they stay as typed; a link to an old address is redirected).
+
+## Machine translation (optional, off by default)
+
+A **Translate** button on pages and posts translates the page you are on from the site's default language into another language and saves it as a draft. It is off until two things are true:
+
+1. the server has a provider, set in its environment (never in the database or git):
+
+   | Variable | |
+   | --- | --- |
+   | `POLYSITE_TRANSLATE_PROVIDER` | `claude`, `libretranslate` (or `echo`, which only marks text, for development; it refuses to run in production) |
+   | `POLYSITE_TRANSLATE_API_KEY` | `claude`: an Anthropic API key. `libretranslate`: its key, if its server wants one |
+   | `POLYSITE_TRANSLATE_URL` | `libretranslate`: the server address (a self-hosted one keeps the text on your own machine). `claude`: an alternative API address, such as a proxy |
+   | `POLYSITE_TRANSLATE_MODEL` | `claude`: the model (default `claude-haiku-5-5`) |
+   | `POLYSITE_TRANSLATE_MAX_CHARS` | the most text one translation may send (default 30000) |
+
+2. the site switches **Machine translation helper** on, on its **Site languages** page.
+
+What is sent: the prose of that one page or post that has no translation yet (text, long text and rich text; for rich text only the text itself, in order, so bold, links and headings are kept), and the two language names. Never form submissions, visitors' data, users, or anything outside that document. The person pressing the button must be allowed to change the page.
+
+What happens next: the translation is saved as a **draft** in the target language, nothing goes live, and what is already translated is never overwritten. The language is marked in the list (`fr*`, dashed) as machine-translated, and **the page cannot be published until someone has read it and chosen "Mark fr as reviewed"**. Add a provider by writing one function (`translate({ texts, from, to })` returning the translated strings in the same order, in `src/translate/providers.js`).
+
+Limits: a sentence split across differently formatted text nodes (a bold word in the middle) is translated in pieces; code blocks are left alone; the helper does not translate menu or footer labels (those are on the site's own screen).
+
 ## Settings that are not here yet
 
-Translated addresses (the slug is the same in every language), publishing one language at a time, machine translation and a domain per language. A "this language is live / preview only" switch for a site is also not built.
+Publishing one language on its own (per document), translated addresses for news posts, and a domain per language.
+
+## Right-to-left languages
+
+The reading direction follows the language (`<html dir="rtl">` for Arabic, Hebrew, Persian, Urdu and the other right-to-left languages in the catalog). The core and the starter theme use logical CSS (`margin-inline-start`, `text-align: start`, ...), so a theme that does the same turns around by itself; `Polysite-themes/scripts/check-rtl.mjs` reports any left/right left in a theme. A directional arrow written as a character needs `class="poly-arrow"` so it is mirrored.
 
 ## For developers
 
@@ -51,6 +87,8 @@ src/index.js                     the plugin: the site-languages collection, whic
 src/languages.js                 the rules (what a site offers, who may write in which language, what the settings must satisfy)
 src/admin/LanguageSelect.js      the language menu of the settings page (plain text values, the catalog enforced by validation)
 src/admin/LanguageMarker.js      shows the admin's language picker only when there is more than one language
+src/admin/TranslateButton.js     the machine-translation button and the "mark reviewed" buttons
+src/translate/                   providers.js (claude, libretranslate, echo), walk.js (finds the prose and puts the translation back), service.js (the endpoints and the publish guard)
 src/admin/TranslationsCell.js    the Languages column: one tag per offered language, faint when there is no text
 migrations/                      the plugin's own database migrations (its tables only)
 web/                             the Nuxt layer: the switcher, the head tags, dictionaries (fr, es, de)

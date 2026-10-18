@@ -20,6 +20,16 @@ async function load(collection, id) {
   return cache.get(key);
 }
 
+// Languages of this item that were machine-translated and not yet reviewed (translate/service.js). Empty when there are none.
+async function unreviewed(collection, id) {
+  try {
+    const res = await fetch(`/api/machine-translations?where[collectionSlug][equals]=${encodeURIComponent(collection)}&where[docId][equals]=${encodeURIComponent(id)}&where[reviewed][equals]=false&limit=20&depth=0`, { credentials: "include" });
+    return res.ok ? ((await res.json()).docs ?? []).map((d) => d.locale) : [];
+  } catch {
+    return [];
+  }
+}
+
 const offered = new Map();
 async function languagesOfSite(siteId) {
   if (siteId === undefined || siteId === null) return ["en"];
@@ -56,7 +66,9 @@ export function TranslationsCell({ rowData, collectionSlug }) {
       const languages = await languagesOfSite(siteId);
       if (stopped) return;
       const titles = doc.title && typeof doc.title === "object" ? doc.title : {};
-      setState({ languages, has: (code) => typeof titles[code] === "string" && titles[code].trim() !== "" });
+      const machine = await unreviewed(collectionSlug, id);
+      if (stopped) return;
+      setState({ languages, machine, has: (code) => typeof titles[code] === "string" && titles[code].trim() !== "" });
     })();
     return () => {
       stopped = true;
@@ -72,18 +84,18 @@ export function TranslationsCell({ rowData, collectionSlug }) {
         "span",
         {
           key: code,
-          title: state.has(code) ? `Has ${code} text` : `Missing translation: ${code}`,
+          title: state.machine.includes(code) ? `Machine-translated, not reviewed yet: ${code}` : state.has(code) ? `Has ${code} text` : `Missing translation: ${code}`,
           style: {
             padding: "1px 6px",
             borderRadius: "10px",
             fontSize: "11px",
             textTransform: "uppercase",
-            border: "1px solid var(--theme-elevation-300)",
+            border: state.machine.includes(code) ? "1px dashed var(--theme-warning-500, #d97706)" : "1px solid var(--theme-elevation-300)",
             opacity: state.has(code) ? 1 : 0.4,
             textDecoration: state.has(code) ? "none" : "line-through",
           },
         },
-        code,
+        state.machine.includes(code) ? `${code}*` : code,
       ),
     ),
   );

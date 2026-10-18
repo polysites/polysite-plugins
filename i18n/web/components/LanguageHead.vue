@@ -5,10 +5,16 @@ import { alternateLinks, pageLanguages, shouldNoindex } from "../utils/alternate
 
 const language = useSiteLanguage();
 const origin = useRequestURL().origin;
-const { data: translated } = await usePageTranslations();
+const { data: entry } = await usePageTranslations();
+const translated = computed(() => entry.value?.languages ?? null);
 
 const have = computed(() => pageLanguages(language.setup.value, translated.value));
-const addressOf = (code: string) => withLanguage(language.path.value ? `/${language.path.value}` : "/", code, language.setup.value);
+// A page can have its own address in a language (/fr/a-propos), so each language's link is read from the index, not made by putting the
+// prefix on this address.
+const addressOf = (code: string) =>
+  entry.value
+    ? addressInLanguage(entry.value.path, entry.value.localized, code, language.setup.value)
+    : withLanguage(language.path.value ? `/${language.path.value}` : "/", code, language.setup.value);
 
 useHead({
   link: computed(() => (language.multilingual.value ? alternateLinks(language.setup.value, have.value, origin, addressOf) : [])),

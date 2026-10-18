@@ -28,7 +28,7 @@ const categories = computed(() => (props.post.categories ?? []).filter((c): c is
     <RichText :data="post.body" class="poly-post-body text-lg leading-relaxed"/>
 
     <footer class="poly-post-footer mt-10 border-t border-neutral-200 pt-6">
-      <NuxtLink :to="localePath(listHref(section))" class="underline">&larr; {{ sectionLabel }}</NuxtLink>
+      <NuxtLink :to="localePath(listHref(section))" class="underline"><span class="poly-arrow">&larr;</span> {{ sectionLabel }}</NuxtLink>
     </footer>
   </article>
 </template>

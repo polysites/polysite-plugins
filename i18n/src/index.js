@@ -1,16 +1,20 @@
-import { checkDefaultLanguage, checkLanguages, normaliseSiteLanguages, offeredBy, selectedSiteId, SYSTEM_DEFAULT, unionOffered } from "./languages.js";
+import { markReviewed, MT_SLUG, publishGuard, translateDocument, translationStatus } from "./translate/service.js";
+import { checkDefaultLanguage, checkLanguages, checkPreviewLanguages, normaliseSiteLanguages, offeredBy, selectedSiteId, SYSTEM_DEFAULT, unionOffered } from "./languages.js";
 
 // Admin component paths are relative to apps/cms/src (the import map's baseDir); see the notifications plugin.
 const MARKER = "../../../plugins/i18n/src/admin/LanguageMarker#LanguageMarker";
 const CELL = "../../../plugins/i18n/src/admin/TranslationsCell#TranslationsCell";
+const TRANSLATE_BUTTON = "../../../plugins/i18n/src/admin/TranslateButton#TranslateButton";
 const SELECT = "../../../plugins/i18n/src/admin/LanguageSelect#LanguageSelect";
 
 // The collections whose items have a title in each language: the list shows which languages an item has text in.
 const TRANSLATED_LISTS = ["pages", "posts"];
 
 export const SLUG = "site-languages";
-export const PUBLIC_FIELDS = ["languages", "defaultLanguage"];
+// previewLanguages is public on purpose: the web app needs it to keep those languages away from visitors.
+export const PUBLIC_FIELDS = ["languages", "defaultLanguage", "previewLanguages"];
 
+const body = async (req) => (await req.json?.().catch(() => null)) ?? {};
 const json = (body, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
 // Languages for a site: which ones it offers, which is the default, and who may write in them. The core always stores text in the
@@ -72,7 +76,7 @@ export default function i18nPlugin(incomingConfig, kit) {
 
   // Plain text, not a database enum (the catalog is the core's and grows with its releases), so the language menu is the field's
   // admin component and the catalog is enforced by `validate`.
-  const menu = (single) => ({ Field: { path: SELECT, clientProps: { options, single } } });
+  const menu = (single, subset = false) => ({ Field: { path: SELECT, clientProps: { options, single, subset } } });
 
   const SiteLanguages = {
     slug: SLUG,
@@ -118,8 +122,48 @@ export default function i18nPlugin(incomingConfig, kit) {
           components: menu(true),
         },
       },
+      {
+        name: "previewLanguages",
+        type: "text",
+        hasMany: true,
+        label: "Preview only (not live yet)",
+        validate: checkPreviewLanguages(known),
+        admin: {
+          description:
+            "Languages editors can write in and preview, but visitors cannot reach yet: no address, no switcher entry, no search-engine links. Take a language out of this list to put it live. The default language is always live.",
+          condition: (data) => Array.isArray(data?.languages) && data.languages.length > 1,
+          components: menu(false, true),
+        },
+      },
+      {
+        name: "translationEnabled",
+        type: "checkbox",
+        label: "Machine translation helper",
+        defaultValue: false,
+        admin: {
+          description:
+            "Adds a \"Translate\" button to pages and posts. When used, the text of that one page or post (never form submissions or visitor data) is sent to the translation service the server was set up with, and the result is saved as a draft that someone must review before it can be published. Off unless you switch it on. Not published on the site.",
+          condition: (data) => Array.isArray(data?.languages) && data.languages.length > 1,
+        },
+      },
     ],
     custom: { polysite: { siteSettings: { key: "languages", publicFields: PUBLIC_FIELDS } } },
+  };
+
+  // One row per machine-translated language of a document, until someone marks it reviewed. Written by the server only.
+  const MachineTranslations = {
+    slug: MT_SLUG,
+    labels: { singular: "Machine translation", plural: "Machine translations" },
+    admin: { hidden: true, useAsTitle: "docId" },
+    access: { read: ({ req: { user } }) => Boolean(user), create: () => false, update: () => false, delete: ({ req: { user } }) => kit.canManageSiteSettings(user) },
+    fields: [
+      { name: "collectionSlug", type: "text", required: true, index: true },
+      { name: "docId", type: "text", required: true, index: true },
+      { name: "locale", type: "text", required: true },
+      { name: "provider", type: "text" },
+      { name: "reviewed", type: "checkbox", defaultValue: false, index: true },
+      { name: "reviewedBy", type: "number" },
+    ],
   };
 
   const collections = (incomingConfig.collections ?? []).map((collection) => {
@@ -132,8 +176,13 @@ export default function i18nPlugin(incomingConfig, kit) {
         // No data: a list cell only (admin/TranslationsCell.js).
         { name: "translations", type: "ui", label: "Languages", admin: { components: { Cell: CELL } } },
       ],
+      hooks: { ...collection.hooks, beforeChange: [...(collection.hooks?.beforeChange ?? []), publishGuard(collection.slug)] },
       admin: {
         ...collection.admin,
+        components: {
+          ...collection.admin?.components,
+          edit: { ...collection.admin?.components?.edit, beforeDocumentControls: [...(collection.admin?.components?.edit?.beforeDocumentControls ?? []), TRANSLATE_BUTTON] },
+        },
         ...(Array.isArray(columns) && !columns.includes("translations") ? { defaultColumns: [...columns.slice(0, 2), "translations", ...columns.slice(2)] } : {}),
       },
     };
@@ -146,9 +195,26 @@ export default function i18nPlugin(incomingConfig, kit) {
       ...incomingConfig.admin,
       components: { ...incomingConfig.admin?.components, header: [...(incomingConfig.admin?.components?.header ?? []), MARKER] },
     },
-    collections: [...collections, SiteLanguages],
+    collections: [...collections, SiteLanguages, MachineTranslations],
     endpoints: [
       ...(incomingConfig.endpoints ?? []),
+      // The machine-translation helper (see translate/service.js). Each answers with a plain message on failure.
+      ...[
+        ["get", "/i18n/translate/status", async (req) => translationStatus(req, String(req.query?.collection), req.query?.id)],
+        ["post", "/i18n/translate", async (req) => translateDocument(req, await body(req))],
+        ["post", "/i18n/translate/review", async (req) => markReviewed(req, await body(req))],
+      ].map(([method, path, run]) => ({
+        path,
+        method,
+        handler: async (req) => {
+          try {
+            return json(await run(req));
+          } catch (error) {
+            const status = Number(error?.status) || 500;
+            return json({ error: status < 500 || error?.isPublic ? error.message : "Translation failed." }, status);
+          }
+        },
+      })),
       {
         // Tells the admin whether to show the language picker: only when the person can write in more than one language.
         path: "/i18n/status",
