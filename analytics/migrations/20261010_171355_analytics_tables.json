@@ -10412,6 +10412,33 @@
           "notNull": false,
           "default": "'none'"
         },
+        "petition_dedupe": {
+          "name": "petition_dedupe",
+          "type": "enum_forms_petition_dedupe",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'none'"
+        },
+        "petition_show_count": {
+          "name": "petition_show_count",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "petition_count_offset": {
+          "name": "petition_count_offset",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "petition_goal": {
+          "name": "petition_goal",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
         "landing_page_id": {
           "name": "landing_page_id",
           "type": "integer",
@@ -10762,6 +10789,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "dedupe_key": {
+          "name": "dedupe_key",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "expires_at": {
           "name": "expires_at",
           "type": "timestamp(3) with time zone",
@@ -10855,6 +10888,27 @@
             }
           ],
           "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "form_dedupeKey_idx": {
+          "name": "form_dedupeKey_idx",
+          "columns": [
+            {
+              "expression": "form_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "dedupe_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -12822,6 +12876,14 @@
         "turnstile"
       ]
     },
+    "public.enum_forms_petition_dedupe": {
+      "name": "enum_forms_petition_dedupe",
+      "schema": "public",
+      "values": [
+        "none",
+        "email"
+      ]
+    },
     "public.enum_payload_jobs_log_task_slug": {
       "name": "enum_payload_jobs_log_task_slug",
       "schema": "public",
@@ -12857,6 +12919,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "0bb13d5a-653a-4260-8d0d-5a014e378bac",
+  "id": "3b4a63a1-84ed-4801-b050-bd09e95df79b",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }
