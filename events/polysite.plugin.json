@@ -1,0 +1,7 @@
+{
+  "slug": "events",
+  "label": "Events",
+  "scope": "per-site",
+  "kind": ["content-type", "site-settings"],
+  "version": "0.1.0"
+}
