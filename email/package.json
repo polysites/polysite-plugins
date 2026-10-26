@@ -6,6 +6,6 @@
   "type": "module",
   "main": "src/index.js",
   "dependencies": {
-    "nodemailer": "^10.1.2"
+    "nodemailer": "^10.2.1"
   }
 }
